@@ -15,12 +15,12 @@ class RealJointStatePublisher(Node):
         # MyCobot 초기화 - 포트와 속도는 실제 사용 환경에 맞춰 수정!
         self.mc = MyCobot("/dev/ttyJETCOBOT", 1000000)
         self.joint_names = [
-            "link2_to_link1",
-            "link3_to_link2",
-            "link4_to_link3",
-            "link5_to_link4",
-            "link6_to_link5",
-            "link6output_to_link6",
+            "1_Joint",
+            "2_Joint",
+            "3_Joint",
+            "4_Joint",
+            "5_Joint",
+            "6_Joint",
         ]
 
         # 퍼블리셔 생성

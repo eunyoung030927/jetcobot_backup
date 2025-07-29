@@ -3,7 +3,7 @@ from launch_ros.actions import Node
 
 def generate_launch_description():
     # URDF 경로 (절대 경로 또는 자동 경로 사용 가능)
-    urdf_path = "/home/jetcobot/silver_ws/src/jetcobot_movetag/urdf/mycobot_280_m5/mycobot_280m5_with_gripper_parallel.urdf"
+    urdf_path = "/home/jetcobot/silver_ws/src/jetcobot_movetag/urdf/jetcobot.urdf"
     with open(urdf_path, 'r') as infp:
         robot_description = infp.read()
 
