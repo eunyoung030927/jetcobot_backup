@@ -47,16 +47,24 @@ class PosePublisher(Node):
 
 # Flask 및 AprilTag 설정
 app = Flask(__name__)
-cap = cv2.VideoCapture('/dev/jetcocam0')
+
+cap = cv2.VideoCapture('/dev/video2') 
 detector = Detector(families='tagStandard41h12') # AprilTag 디텍터 설정
 
-camera_matrix = np.array([ # 카메라 캘리브레이션 매트릭스
-    [978.548555, 0.0, 293.112691],
-    [0.0, 981.781244, 163.100487],
-    [0.0, 0.0, 1.0]
+# camera_matrix = np.array([ # 카메라 캘리브레이션 매트릭스
+#     [1477.087800 , 0.0 , 1094.297440],
+#     [0.0, 1476.835784 , 712.246996],
+#     [0.0, 0.0, 1.0]
+# ])
+camera_matrix = np.array([
+    [1470.52468,    0.     , 1101.4257],
+    [0.     , 1468.05761,  682.17243],
+    [0.     ,    0.     ,    1.     ]
 ])
-dist_coeffs = np.array([-0.481485, 0.586547, -0.000026, 0.005891, 0.0]) # 렌즈 왜곡 계수
-tag_size = 0.028  # meter
+
+# dist_coeffs = np.array([-0.317949 ,0.090885 ,-0.002790 ,-0.000163 ,0.0]) # 렌즈 왜곡 계수
+dist_coeffs = np.array([-0.313189, 0.087017, -0.002519, -0.001188, 0.000000])
+tag_size = 0.015  # meter
 
 # ROS2 초기화
 rclpy.init()

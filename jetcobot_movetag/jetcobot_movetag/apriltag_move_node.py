@@ -13,6 +13,8 @@ import math
 
 
 URDF_PATH = "/home/jetcobot/silver_ws/src/jetcobot_movetag/urdf/jetcobot.urdf"
+# URDF_PATH = "/home/jetcobot/silver_ws/src/jetcobot_movetag/urdf/jetcobot_no_tcp.urdf"
+
 class AprilTagToRobot(Node):
     def __init__(self):
         super().__init__('apriltag_to_robot')
@@ -25,7 +27,7 @@ class AprilTagToRobot(Node):
         ]
 
         # 2. 역기구학용 Chain 로드
-        self.chain = Chain.from_urdf_file(URDF_PATH, base_elements=["base_link"]) # urdf 바꿨더니 마지막 링크가 tcp네? 
+        self.chain = Chain.from_urdf_file(URDF_PATH, base_elements=["base_link"]) # urdf 바꿨더니 마지막 링크가 tcp네? \
         # self.chain = Chain.from_urdf_file(URDF_PATH, base_elements=["base_link"], last_link_vector=np.array([0.1139, -0.0000566, 0.0123])) # last_link_name='tcp' # tcp가 y축으로 3.5cm 아래, 에 위치
         self.joint_indices = [idx for idx, link in enumerate(self.chain.links) if link.name in self.joint_names] # IK 계산 결과 필터링할 인덱스
 
@@ -77,9 +79,9 @@ class AprilTagToRobot(Node):
         self.current_tag_frame = msg.header.frame_id  # ex: "tag36h11:4"
         self.get_logger().info(f"[NEW TAG DETECTED] {self.current_tag_frame}: pos={msg.pose.position}")
 
-        # 1) tf2에서 base_link → tagNN 변환 계산
+        # 1-1) tf2에서 base_link → tagNN 변환 계산
         try: # tf 변환을 기다리는 함수 호출 
-            trans = self.wait_lookup_transform(self.tf_buffer, 'base_link', self.current_tag_frame, 2.0)
+            trans = self.wait_lookup_transform(self.tf_buffer, 'base_link', self.current_tag_frame, 10.0)
             
             t = trans.transform.translation # 위치
             pos = np.array([t.x, t.y, t.z])
@@ -87,6 +89,13 @@ class AprilTagToRobot(Node):
             # quat = np.array([q.x, q.y, q.z, q.w])
 
             self.get_logger().info(f"[TF2] base_link → {self.current_tag_frame} : pos={pos}")
+
+            # 1-2) z축 offset 설정 
+            approach_offset = np.array([0.0, 0.0, 0.09]) # z축으로 9cm 위로 이동
+            cam_offset = np.array([0.0, 0.0, 0.00]) # z축으로 7cm 위로 이동
+            pos = np.array(pos)
+            pos += cam_offset
+            self.get_logger().info(f"[TF2 + offset] base_link → {self.current_tag_frame} : pos={pos}")
 
             # 2) IK 계산: 목표 위치/회전을 전달
             self.move_robot(pos) # , quat
@@ -128,7 +137,7 @@ class AprilTagToRobot(Node):
             # 3) 각도 퍼블리시
             self.publish_joint_positions(radian_list)
             # 4) MyCobot에 각도 전송
-            self.mc.send_angles(degree_list, 50, _async=True)
+            # self.mc.send_angles(degree_list, 50, _async=True)
 
             self.get_logger().info(f"[IK] 이동 joint 각도: {degree_list}")
         except Exception as e:
