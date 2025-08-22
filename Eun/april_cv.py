@@ -1,11 +1,23 @@
 import cv2
+import numpy as np
 from flask import Flask, Response
 from pupil_apriltags import Detector
+
+import tf.transformations as tf_trans
+from geometry_msgs.msg import Pose
 
 app = Flask(__name__)
 
 cap = cv2.VideoCapture('/dev/jetcocam0')
 detector = Detector(families='tag36h11')
+
+camera_matrix = np.array([
+    [978.548555, 0.0, 293.112691],
+    [0.0, 981.781244, 163.100487],
+    [0.0, 0.0, 1.0]
+])
+dist_coeffs = np.array([-0.481485, 0.586547, -0.000026, 0.005891, 0.0])
+tag_size = 0.028
 
 def gen_frames():
     while True:
@@ -13,8 +25,21 @@ def gen_frames():
         if not ret:
             break
 
+        # 왜곡 보정
+        frame = cv2.undistort(frame, camera_matrix, dist_coeffs)
+
         gray = cv2.cvtColor(frame, cv2.COLOR_BGR2GRAY)
-        results = detector.detect(gray)
+        results = detector.detect(
+            gray,
+            estimate_tag_pose=True,
+            camera_params=[
+                camera_matrix[0, 0],  # fx
+                camera_matrix[1, 1],  # fy
+                camera_matrix[0, 2],  # cx
+                camera_matrix[1, 2]   # cy
+            ],
+            tag_size=tag_size
+        )
 
         for r in results:
             (ptA, ptB, ptC, ptD) = r.corners
@@ -28,11 +53,15 @@ def gen_frames():
             cv2.putText(frame, str(r.tag_id), (ptA[0], ptA[1] - 10),
                         cv2.FONT_HERSHEY_SIMPLEX, 0.5, (0, 255, 0), 2)
 
-        # 프레임을 JPEG로 인코딩
+            # TF(Translation Vector) 표시
+            if hasattr(r, 'pose_t') and r.pose_t is not None:
+                t = r.pose_t.flatten()
+                tf_text = f"TF: X={t[0]:.2f} Y={t[1]:.2f} Z={t[2]:.2f} m"
+                cv2.putText(frame, tf_text, (ptA[0], ptA[1] - 30),
+                            cv2.FONT_HERSHEY_SIMPLEX, 0.5, (255, 255, 0), 2)
+
         ret, buffer = cv2.imencode('.jpg', frame)
         frame = buffer.tobytes()
-
-        # 스트림 전송
         yield (b'--frame\r\n'
                b'Content-Type: image/jpeg\r\n\r\n' + frame + b'\r\n')
 

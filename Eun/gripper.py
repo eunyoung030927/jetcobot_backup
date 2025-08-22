@@ -24,7 +24,7 @@ print("로봇이 연결되었습니다.")
 
 # 그리퍼 완전히 열기
 print("그리퍼를 완전히 엽니다.")
-mc.set_gripper_value(100, 50)
+mc.set_gripper_value(100, 50) # gripper value, speed
 time.sleep(1)
 # # 그리퍼 반쯤 닫기
 # print("그리퍼를 반쯤 닫습니다.")

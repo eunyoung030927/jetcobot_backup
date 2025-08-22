@@ -18,9 +18,18 @@ print("로봇이 연결되었습니다.")
 # time.sleep(3) # 움직임이 완료될 때까지 대기
 # print("리셋 완료")
 
+# home_angles = [0.17, -34.18, 0.52, -40.86, 6.5, -40.16] # 초기 위치 (각도 단위)
+home_angles = [0.0, 0.0, 0.0, 0.0, 0.0, -45.0] # 초기 위치 (좌표 단위)
+speed = 10
+mc.send_angles(home_angles, speed)
+print("로봇이 홈 위치로 이동했습니다.")
+mc.set_gripper_value(100, speed) # 그리퍼 열기 # 닫기는 0
+print("로봇이 그리퍼를 열었습니다.")
+time.sleep(3) # 움직임이 완료될 때까지 대기
+
 # 현재 각도 읽기
 angles = mc.get_angles()
-print("현재 각도:", angles) # [0.08, -12.91, 0.52, -41.92, 3.6, -42.18]
+print("현재 각도:", angles) # [0.08, -12.91, 0.52, -41.92, 3.6, -42.18] # [0.17, -34.18, 0.52, -40.86, 6.5, -40.16] 
 # 현재 좌표 읽기
 coords = mc.get_coords()
 print("현재 좌표:", coords)
@@ -31,3 +40,4 @@ print("인코더:", encoders)
 radians = mc.get_radians()
 print("라디안:", radians)
 
+# python3 src/Eun/home_pose.py

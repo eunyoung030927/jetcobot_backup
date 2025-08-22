@@ -25,17 +25,17 @@ class PosePublisher(Node):
     def publish_pose(self, tag_id, position, orientation):
         msg = PoseStamped()
         msg.header.stamp = self.get_clock().now().to_msg()
-        msg.header.frame_id = f"tag36h11:{tag_id}"
+        msg.header.frame_id = f"tag41h12:{tag_id}"
         msg.pose.position.x, msg.pose.position.y, msg.pose.position.z = position
         msg.pose.orientation.x, msg.pose.orientation.y, msg.pose.orientation.z, msg.pose.orientation.w = orientation
         self.publisher_.publish(msg)
-        self.get_logger().info(f"Published tag36h11:{tag_id}: {position}, {orientation}")
+        self.get_logger().info(f"Published tag41h12:{tag_id}: {position}, {orientation}")
 
         # TF 트리 브로드캐스트 (자동 연결)
         tf_msg = TransformStamped()
         tf_msg.header.stamp = msg.header.stamp           # 시간 동기화
         tf_msg.header.frame_id = "jetcocam"              # 카메라 프레임 명 (혹은 실제 setup에 맞게)
-        tf_msg.child_frame_id = f"tag36h11:{tag_id}"
+        tf_msg.child_frame_id = f"tag41h12:{tag_id}"
         tf_msg.transform.translation.x, tf_msg.transform.translation.y, tf_msg.transform.translation.z = position
         tf_msg.transform.rotation.x, tf_msg.transform.rotation.y, tf_msg.transform.rotation.z, tf_msg.transform.rotation.w = orientation
         self.tf_broadcaster.sendTransform(tf_msg)
@@ -55,16 +55,25 @@ class PosePublisher(Node):
 
 # Flask 및 AprilTag 설정
 app = Flask(__name__)
-cap = cv2.VideoCapture('/dev/jetcocam0')
-detector = Detector(families='tag36h11')
+cap = cv2.VideoCapture('/dev/video1')
+detector = Detector(families='tagStandard41h12')
 
+# # kemjensak ver
 camera_matrix = np.array([
-    [978.548555, 0.0, 293.112691],
-    [0.0, 981.781244, 163.100487],
+    [1476.618608086257, 0.0, 974.2917823473314],
+    [0.0, 1478.3981140418584, 697.7246007556945],
     [0.0, 0.0, 1.0]
 ])
-dist_coeffs = np.array([-0.481485, 0.586547, -0.000026, 0.005891, 0.0])
-tag_size = 0.028  # meter
+dist_coeffs = np.array([-0.32658244076013093, 0.1042960797739518, 0.0002708722265169234, 0.0003174138745978604, 0.0])
+
+# camera_matrix = np.array([
+#     [1470.52468,    0.     , 1101.4257],
+#     [0.     , 1468.05761,  682.17243],
+#     [0.0, 0.0, 1.0]
+# ])
+# dist_coeffs = np.array([-0.313189, 0.087017, -0.002519, -0.001188, 0.000000])
+
+tag_size = 0.015  # meter
 
 # ROS2 초기화
 rclpy.init()
